@@ -333,6 +333,11 @@ func (t *Tracer) TraceBatchStart(ctx context.Context, conn *pgx.Conn, data pgx.T
 func (t *Tracer) TraceBatchQuery(ctx context.Context, conn *pgx.Conn, data pgx.TraceBatchQueryData) {
 	t.incrementOperationErrorCount(ctx, data.Err, pgxOperationBatch)
 
+	if t.skipBatchQueries {
+		// Short circuit query tracing if we're in a batch and [WithSkipBatchQueries] was used.
+		return
+	}
+
 	if !trace.SpanFromContext(ctx).IsRecording() {
 		return
 	}
